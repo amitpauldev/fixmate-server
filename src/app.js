@@ -1,5 +1,6 @@
 import cors from "cors";
 import express from "express";
+import { connectDatabase } from "./config/db.js";
 import { env } from "./config/env.js";
 import { errorHandler, notFound } from "./middleware/error.js";
 import adminRoutes from "./routes/admin.js";
@@ -20,6 +21,18 @@ app.get("/health", (request, response) => {
 		message: "FixMate server is running",
 		environment: env.nodeEnv,
 	});
+});
+
+// Database connection middleware
+app.use(async (request, response, next) => {
+	try {
+		await connectDatabase();
+		next();
+	} catch (error) {
+		error.statusCode = 503;
+		error.message = "Database is unavailable";
+		next(error);
+	}
 });
 
 app.use("/api/users", userRoutes);
