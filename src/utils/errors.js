@@ -1,3 +1,5 @@
+import { ObjectId } from "mongodb";
+
 export class AppError extends Error {
   constructor(message, statusCode = 500) {
     super(message);
@@ -10,5 +12,5 @@ export const objectId = (value, name) => {
     throw new AppError(`Invalid ${name}`, 400);
   }
 
-  return value;
+  return new ObjectId(value);
 };

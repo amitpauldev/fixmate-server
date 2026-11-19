@@ -2,6 +2,10 @@ import cors from "cors";
 import express from "express";
 import { env } from "./config/env.js";
 import { errorHandler, notFound } from "./middleware/error.js";
+import adminRoutes from "./routes/admin.js";
+import bookingRoutes from "./routes/bookings.js";
+import serviceRoutes from "./routes/services.js";
+import userRoutes from "./routes/users.js";
 
 const app = express();
 
@@ -19,6 +23,11 @@ app.get("/health", (request, response) => {
 		environment: env.nodeEnv,
 	});
 });
+
+app.use("/api/users", userRoutes);
+app.use("/api/services", serviceRoutes);
+app.use("/api/bookings", bookingRoutes);
+app.use("/api/admin", adminRoutes);
 
 app.use(notFound);
 app.use(errorHandler);
