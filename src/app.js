@@ -10,9 +10,7 @@ import userRoutes from "./routes/users.js";
 const app = express();
 
 app.use(
-	cors({
-		origin: env.frontendOrigin,
-	}),
+	cors(), //{ origin: env.frontendOrigin,}
 );
 app.use(express.json());
 
