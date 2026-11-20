@@ -40,6 +40,13 @@ router.get("/:id", async (request, response) => {
 	response.json({ success: true, data: service });
 });
 
+router.get("/technician/:id", async (request, response) => {
+	const services = await collection()
+		.find({ technicianId: request.params.id })
+		.toArray();
+	response.json({ success: true, data: services });
+});
+
 router.post("/", async (request, response) => {
 	const service = request.body;
 	const result = await collection().insertOne(service);
