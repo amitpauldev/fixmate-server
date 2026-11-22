@@ -1,60 +1,36 @@
 import { Router } from "express";
 import { getDatabase } from "../config/db.js";
 import { AppError, objectId } from "../utils/errors.js";
+import { ObjectId } from "mongodb";
 
 const router = Router();
 const bookings = () => getDatabase().collection("bookings");
 const services = () => getDatabase().collection("services");
-const transitions = {
-	requested: ["accepted", "rejected", "cancelled"],
-	accepted: ["in-progress", "cancelled"],
-	"in-progress": ["completed"],
-	completed: [],
-	rejected: [],
-	cancelled: [],
-};
 
 router.post("/", async (request, response) => {
-	const {
-		customerId,
-		serviceId,
-		scheduledDate,
-		address,
-		notes = "",
-	} = request.body;
-	if (!customerId || !serviceId || !scheduledDate || !address) {
-		throw new AppError(
-			"Customer, service, scheduled date, and address are required",
-			400,
-		);
-	}
+	const data = request.body;
 
 	const service = await services().findOne({
-		_id: objectId(serviceId, "service id"),
+		_id: new ObjectId(data.serviceId),
 		approvalStatus: "approved",
 		isAvailable: true,
 	});
 	if (!service)
 		throw new AppError("Approved and available service not found", 404);
 
-	const booking = {
-		customerId,
-		technicianId: service.technicianId,
-		serviceId: service._id,
-		serviceTitle: service.title,
-		scheduledDate,
-		address,
-		notes,
-		finalAmount: service.price,
+	const bookingData = {
+		...data,
+		finalAmount: null,
 		status: "requested",
 		paymentStatus: "unpaid",
-		createdAt: new Date(),
-		updatedAt: new Date(),
+		createdAt: new Date().toISOString(),
+		updatedAt: new Date().toISOString(),
 	};
-	const result = await bookings().insertOne(booking);
+
+	const result = await bookings().insertOne({ ...bookingData });
 	response
 		.status(201)
-		.json({ success: true, data: { ...booking, _id: result.insertedId } });
+		.json({ success: true, data: { ...bookingData, _id: result.insertedId } });
 });
 
 router.get("/", async (request, response) => {
@@ -71,19 +47,19 @@ router.get("/", async (request, response) => {
 });
 
 router.patch("/:id/status", async (request, response) => {
-	const bookingId = objectId(request.params.id, "booking id");
+	const bookingId = new ObjectId(request.params.id);
 	const booking = await bookings().findOne({ _id: bookingId });
+
 	if (!booking) throw new AppError("Booking not found", 404);
-	if (!transitions[booking.status]?.includes(request.body.status)) {
-		throw new AppError(
-			`Cannot change booking status from ${booking.status} to ${request.body.status}`,
-			400,
-		);
-	}
 
 	const updated = await bookings().findOneAndUpdate(
 		{ _id: bookingId },
-		{ $set: { status: request.body.status, updatedAt: new Date() } },
+		{
+			$set: {
+				status: request.body.status,
+				updatedAt: new Date().toISOString(),
+			},
+		},
 		{ returnDocument: "after" },
 	);
 	response.json({ success: true, data: updated });
@@ -91,15 +67,13 @@ router.patch("/:id/status", async (request, response) => {
 
 router.post("/:id/cancel", async (request, response) => {
 	request.body.status = "cancelled";
-	const bookingId = objectId(request.params.id, "booking id");
+	const bookingId = new ObjectId(request.params.id);
 	const booking = await bookings().findOne({ _id: bookingId });
 	if (!booking) throw new AppError("Booking not found", 404);
-	if (!transitions[booking.status]?.includes("cancelled")) {
-		throw new AppError(`Cannot cancel a ${booking.status} booking`, 400);
-	}
+
 	const updated = await bookings().findOneAndUpdate(
 		{ _id: bookingId },
-		{ $set: { status: "cancelled", updatedAt: new Date() } },
+		{ $set: { status: "cancelled", updatedAt: new Date().toISOString() } },
 		{ returnDocument: "after" },
 	);
 	response.json({ success: true, data: updated });
