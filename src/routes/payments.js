@@ -110,8 +110,10 @@ router.post("/checkout-verify", async (request, response) => {
 		const payment = {
 			bookingId: booking._id.toString(),
 			serviceTitle: booking.serviceTitle,
+			customerId: booking.customerId,
 			customerName: booking.customerName,
 			customerEmail: booking.customerEmail,
+			technicianId: booking.technicianId,
 			technicianName: booking.technicianName,
 			technicianEmail: booking.technicianEmail,
 			amount: session.amount_total / 100,
@@ -119,7 +121,7 @@ router.post("/checkout-verify", async (request, response) => {
 			transactionId,
 			stripeSessionId: session.id,
 			paymentStatus: "paid",
-			paidAt: new Date(),
+			paidAt: new Date().toISOString(),
 		};
 
 		// Prevent duplicate payment records
@@ -138,7 +140,8 @@ router.post("/checkout-verify", async (request, response) => {
 			{
 				$set: {
 					paymentStatus: "paid",
-					updatedAt: new Date(),
+					paidAt: new Date().toISOString(),
+					updatedAt: new Date().toISOString(),
 				},
 			},
 		);
@@ -151,6 +154,32 @@ router.post("/checkout-verify", async (request, response) => {
 	} catch (error) {
 		console.error("Payment verification error:", error);
 
+		return response.status(500).json({
+			success: false,
+			message: "Internal server error",
+		});
+	}
+});
+
+router.get("/", async (request, response) => {
+	const { customerId, technicianId } = request.query;
+	const filter = {};
+
+	if (customerId) {
+		filter.customerId = customerId;
+	}
+
+	if (technicianId) {
+		filter.technicianId = technicianId;
+	}
+
+	try {
+		const paymentsList = await payments().find(filter).toArray();
+		return response.status(200).json({
+			success: true,
+			data: paymentsList,
+		});
+	} catch (error) {
 		return response.status(500).json({
 			success: false,
 			message: "Internal server error",
