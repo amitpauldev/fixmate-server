@@ -46,6 +46,16 @@ router.get("/", async (request, response) => {
 	response.json({ success: true, data: result });
 });
 
+router.get("/:id", async (request, response) => {
+	const bookingId = new ObjectId(request.params.id);
+
+	const result = await bookings().findOne({ _id: bookingId });
+
+	if (!result) throw new AppError("Booking not found", 404);
+
+	response.json({ success: true, data: result });
+});
+
 router.patch("/:id/status", async (request, response) => {
 	const bookingId = new ObjectId(request.params.id);
 	const booking = await bookings().findOne({ _id: bookingId });
