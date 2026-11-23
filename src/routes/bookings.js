@@ -65,6 +65,31 @@ router.patch("/:id/status", async (request, response) => {
 	response.json({ success: true, data: updated });
 });
 
+router.patch("/:id/final-amount", async (request, response) => {
+	const bookingId = new ObjectId(request.params.id);
+	const booking = await bookings().findOne({ _id: bookingId });
+	if (!booking) throw new AppError("Booking not found", 404);
+
+	console.log(
+		"Updating final amount for booking:",
+		bookingId,
+		"New amount:",
+		request.body.finalAmount,
+	);
+
+	const updated = await bookings().findOneAndUpdate(
+		{ _id: bookingId },
+		{
+			$set: {
+				finalAmount: request.body.finalAmount,
+				updatedAt: new Date().toISOString(),
+			},
+		},
+		{ returnDocument: "after" },
+	);
+	response.json({ success: true, data: updated });
+});
+
 router.post("/:id/cancel", async (request, response) => {
 	request.body.status = "cancelled";
 	const bookingId = new ObjectId(request.params.id);
