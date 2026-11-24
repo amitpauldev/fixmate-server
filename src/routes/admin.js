@@ -8,7 +8,7 @@ const services = () => getDatabase().collection("services");
 
 router.get("/users", async (request, response) => {
 	const users = await getDatabase()
-		.collection("users")
+		.collection("user")
 		.find()
 		.sort({ createdAt: -1 })
 		.toArray();

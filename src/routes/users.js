@@ -7,7 +7,7 @@ const router = Router();
 const collection = () => getDatabase().collection("user");
 
 router.get("/", async (request, response) => {
-	const filter = request.query.role ? { role: request.query.role } : {};
+	const filter = request.query.role ? { appRole: request.query.role } : {};
 	const users = await collection()
 		.find(filter)
 		.sort({ createdAt: -1 })

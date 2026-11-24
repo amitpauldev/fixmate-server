@@ -1,7 +1,7 @@
 {
 	"name": "fixmate-server",
 	"version": "0.0.1",
-	"description": "",
+	"description": "Backend server for **FixMate**, a home service booking platform built to connect customers with skilled technicians. The Express.js API handles authentication-related operations, user management, service listings, bookings, reviews, and administrative tasks. Built with Node.js, Express.js, and MongoDB, it provides RESTful APIs for the FixMate frontend with role-based access control for customers, technicians, and admins.",
 	"license": "ISC",
 	"author": "Amit Paul",
 	"type": "module",
